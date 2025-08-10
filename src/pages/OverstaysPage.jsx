@@ -112,7 +112,7 @@ const OverstaysPage = () => {
       console.log('Overstay records fetched:', data);
     } catch (error) {
       console.error('Failed to fetch overstay records:', error);
-      toast.error('Failed to load overstay records.');
+      toast.info('No overstay records.');
     } finally {
       setLoading(false);
     }
