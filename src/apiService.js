@@ -20,7 +20,7 @@ export const updateOutOfViewCaseApi = async (caseId, updateData) => {
 // src/apiService.js
 // This file centralizes all API calls to your FastAPI backend.
 
-const API_BASE_URL =  'https://ssp-backend-1ovl.onrender.com';
+const API_BASE_URL =  'https://sspbackend-production.up.railway.app';
 
 // --- CACHING SYSTEM ---
 const apiCache = new Map();
