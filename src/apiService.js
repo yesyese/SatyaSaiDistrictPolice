@@ -733,7 +733,7 @@ export const getVisitorRegistrationsApi = async (params = {}) => {
     if (!headers) throw new Error("Authentication token not found.");
 
     const queryParams = new URLSearchParams(params).toString();
-    const url = `${API_BASE_URL}/visitor-registrations${queryParams ? `?${queryParams}` : ''}`;
+    const url = `${API_BASE_URL}/visitor-registrations/${queryParams ? `?${queryParams}` : ''}`;
 
     const response = await fetch(url, { headers });
     return handleResponse(response);
