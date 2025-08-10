@@ -107,7 +107,7 @@ const CitizenshipRequestsPage = () => {
       }
     } catch (error) {
       console.error('Failed to fetch Citizenship Requests Management data:', error);
-      toast.error(`Failed to load citizenship requests: ${error.message}`);
+      toast.info(`No citizenship requests`);
     } finally {
       setLoadingRequests(false);
     }
@@ -200,3 +200,4 @@ const CitizenshipRequestsPage = () => {
 };
 
 export default CitizenshipRequestsPage;
+
