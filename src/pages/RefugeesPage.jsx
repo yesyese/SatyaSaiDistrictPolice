@@ -360,7 +360,7 @@ const RefugeesPage = () => {
       }
     } catch (error) {
       console.error('Failed to fetch Refugee Cases Management data:', error);
-      toast.error(`Failed to load refugee cases: ${error.message}`);
+      toast.info(`No refugee cases: ${error.message}`);
     } finally {
       setLoadingCases(false);
     }
@@ -492,3 +492,4 @@ const RefugeesPage = () => {
 };
 
 export default RefugeesPage;
+
