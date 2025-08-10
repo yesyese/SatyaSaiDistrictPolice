@@ -237,7 +237,7 @@ const RegisteredArrivalsPage = () => {
       
     } catch (error) {
       console.error('Failed to fetch foreigners:', error);
-      toast.error(`Failed to load data: ${error.message}`);
+      toast.info(`No data Found`);
     } finally {
       setLoading(false);
     }
@@ -307,6 +307,7 @@ const RegisteredArrivalsPage = () => {
       default:
         result = dataToFilter;
         break;
+
     }
     setFilteredForeigners(result);
   };
