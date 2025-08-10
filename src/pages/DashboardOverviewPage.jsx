@@ -284,13 +284,13 @@ const DashboardOverviewPage = () => {
                 {dashboardLoading ? (
                   <LoadingSpinner size="medium" message="Loading visa metrics..." />
                 ) : (
-                  <>
+                  <div className="flex flex-col space-y-4">
                     <VisaAlertCard days="2" count={visaExpiryMetrics.visa_expires_in_2_days} onClick={() => handleClick("2")} />
                     <VisaAlertCard days="7" count={visaExpiryMetrics.visa_expires_in_7_days} onClick={() => handleClick("7")} />
                     <VisaAlertCard days="30" count={visaExpiryMetrics.visa_expires_in_30_days} onClick={() => handleClick("30")} />
-                  </>
+                  </div>
                 )}
-                <div className="flex items-center justify-between bg-red-800 bg-opacity-30 p-3 rounded-md border border-red-700">
+                <div className="flex items-center justify-between mt-4 bg-red-800 bg-opacity-30 p-3 rounded-md border border-red-700">
                   <div className="flex flex-col">
                     <span className="text-red-400 font-semibold text-md">Total Overstays</span>
                     <span className="text-red-300 font-bold text-2xl">{visaExpiryMetrics.total_overstays}</span>
