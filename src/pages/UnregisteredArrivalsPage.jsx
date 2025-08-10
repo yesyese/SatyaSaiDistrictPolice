@@ -218,7 +218,7 @@ const UnregisteredArrivalsPage = () => {
       }
     } catch (error) {
       console.error('Failed to fetch Unregistered Arrivals Management reports:', error);
-      toast.error(`Failed to load data: ${error.message}`);
+      toast.info(`No data found`);
     } finally {
       setLoadingReports(false);
     }
@@ -318,3 +318,4 @@ const UnregisteredArrivalsPage = () => {
 };
 
 export default UnregisteredArrivalsPage;
+
