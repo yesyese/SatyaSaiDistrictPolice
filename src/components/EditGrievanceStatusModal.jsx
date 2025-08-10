@@ -22,7 +22,7 @@ const EditGrievanceStatusModal = ({ grievanceId, currentStatus, onClose, onSaveS
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black  flex justify-center items-center z-50">
       <div className="bg-[#141824] p-6 rounded-lg shadow-xl w-full max-w-md mx-auto">
         <h2 className="text-xl font-semibold text-gray-50 mb-4">Update Grievance Status</h2>
         <form onSubmit={handleSave}>
@@ -32,7 +32,7 @@ const EditGrievanceStatusModal = ({ grievanceId, currentStatus, onClose, onSaveS
             onChange={e => setNewStatus(e.target.value)}
           >
             <option value="Open">Open</option>
-            <option value="In Progress">In Progress</option>
+            <option value="InProgress">In Progress</option>
             <option value="Resolved">Resolved</option>
           </select>
           <div className="flex justify-end space-x-2">
@@ -44,5 +44,6 @@ const EditGrievanceStatusModal = ({ grievanceId, currentStatus, onClose, onSaveS
     </div>
   );
 };
+
 
 export default EditGrievanceStatusModal;
