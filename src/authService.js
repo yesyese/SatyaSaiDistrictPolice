@@ -1,7 +1,7 @@
 // src/authService.js
 
 //const API_BASE_URL = 'http://10.111.4.221:8000'; // Your FastAPI backend URL - confirm this is correct!
-const API_BASE_URL = 'https://ssp-backend-1ovl.onrender.com'; // Uncomment this if you want to use localhost for development
+const API_BASE_URL = 'https://sspbackend-production.up.railway.app'; // Uncomment this if you want to use localhost for development
 // WHAT CHANGED: Global variable to store the logout timer ID
 let logoutTimerId = null;
 
@@ -200,3 +200,4 @@ export const logoutUser = async () => { // Made async
     // Always perform local logout actions regardless of API call success/failure
     logoutUserLocally();
 };
+
