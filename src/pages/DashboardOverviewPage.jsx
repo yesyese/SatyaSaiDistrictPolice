@@ -83,10 +83,7 @@ const VisaAlertCard = ({ days, count, onClick }) => {
           {count}
         </span>
       </div>
-      <button className=" hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md transition-colors duration-200 ml-4"
-        onClick={onClick}>
-        View
-      </button>
+     
     </div>
   );
 };
