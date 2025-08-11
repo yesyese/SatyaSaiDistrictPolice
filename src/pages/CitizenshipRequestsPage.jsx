@@ -9,6 +9,7 @@ import { getCitizenshipRequestsManagementApi } from '../apiService';
 import { CustomScrollbarStyles } from '../components/CustomScrollbarStyles';
 import CitizenshipRequestDetailsPage from './CitizenshipRequestDetailsPage'; // Import the new details page
 import { exportDataApi } from '../apiService'; // Adjust the path
+import NewCitizenshipRequestModal from '../components/NewCitizenshipRequestModal';
 
 // WHAT CHANGED: Removed ForeignerTableRow as it's no longer used on this page.
 
@@ -71,14 +72,16 @@ const CitizenshipRequestManagementTableRow = ({ requestData, onReviewApplication
 
 
 const CitizenshipRequestsPage = () => {
+  // State for Add Citizenship Request modal
+  const [showAddModal, setShowAddModal] = useState(false);
   // WHAT CHANGED: Removed foreigners state and loadingForeigners as the first table is removed.
   // const [foreigners, setForeigners] = useState([]);
   // const [loadingForeigners, setLoadingForeigners] = useState(true);
-  const handleExportClick = async() =>{
-    try{
+  const handleExportClick = async () => {
+    try {
       await exportDataApi('citizenship-requests')
     }
-    catch(err){
+    catch (err) {
       toast.err('Export Failed');
     }
   };
@@ -107,7 +110,7 @@ const CitizenshipRequestsPage = () => {
       }
     } catch (error) {
       console.error('Failed to fetch Citizenship Requests Management data:', error);
-      toast.info(`No citizenship requests`);
+      toast.error(`Failed to load citizenship requests: ${error.message}`);
     } finally {
       setLoadingRequests(false);
     }
@@ -145,13 +148,30 @@ const CitizenshipRequestsPage = () => {
           {/* WHAT CHANGED: Header for Citizenship Requests Management (main table) */}
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-xl font-semibold text-gray-50">Citizenship Requests Management</h1>
-
-            <button
-               onClick={handleExportClick}
-              className="flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
-            >
-              Export
-            </button>
+            <div className="flex gap-3">
+              <button
+                className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
+                onClick={() => setShowAddModal(true)}
+              >
+                Add Case
+              </button>
+              <button
+                onClick={handleExportClick}
+                className="flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
+              >
+                Export
+              </button>
+            </div>
+            {/* Add Citizenship Request Modal */}
+            {showAddModal && (
+              <NewCitizenshipRequestModal
+                onClose={() => setShowAddModal(false)}
+                onRequestAdded={() => {
+                  setShowAddModal(false);
+                  fetchCitizenshipRequestsManagement();
+                }}
+              />
+            )}
           </div>
 
 
@@ -200,4 +220,3 @@ const CitizenshipRequestsPage = () => {
 };
 
 export default CitizenshipRequestsPage;
-
