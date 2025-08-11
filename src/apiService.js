@@ -5,6 +5,16 @@
  * @param {object} updateData - The updated case data.
  * @returns {Promise<object>} The updated case object.
  */
+export const addCitizenshipRequestApi = async (requestData) => {
+    const headers = getAuthHeaders();
+    if (!headers) throw new Error("Authentication token not found.");
+    const response = await fetch(`${API_BASE_URL}/citizenship-requests/`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestData)
+    });
+    return handleResponse(response);
+};
 export const updateOutOfViewCaseApi = async (caseId, updateData) => {
     const headers = getAuthHeaders();
     if (!headers) throw new Error("Authentication token not found.");
@@ -105,7 +115,7 @@ const updateCitizenshipRequestStatus = async (request, newStatus) => {
     status: newStatus
   };
 
-  const response = await fetch(`${API_BASE_URL}/citizenship-requests/${request.id}/`, {
+  const response = await fetch(`${API_BASE_URL}/citizenship-requests/${request.id}`, {
     method: 'PUT',
     headers,
     body: JSON.stringify(body)
