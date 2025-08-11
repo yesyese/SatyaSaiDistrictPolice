@@ -875,3 +875,26 @@ export const updateForeignerFullDetailsApi = async (foreignerId, fullDetailsData
     });
     return handleResponse(response);
 };
+export const getVisitorRegistrationByIdApi = async (submissionId) => {
+    const headers = getAuthHeaders();
+    if (!headers) throw new Error("Authentication token not found.");
+    const response = await fetch(`${API_BASE_URL}/visitor-registrations/${submissionId}`, {
+        method: 'GET',
+        headers
+    });
+    return handleResponse(response);
+};
+
+export const deleteVisitorRegistrationApi = async (submissionId) => {
+    const headers = getAuthHeaders();
+    if (!headers) throw new Error("Authentication token not found.");
+    const response = await fetch(`${API_BASE_URL}/visitor-registrations/${submissionId}`, {
+        method: 'DELETE',
+        headers
+    });
+    if (!response.ok && response.status !== 204) {
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error during delete' }));
+        throw new Error(errorData.detail || `Delete failed with status: ${response.status}`);
+    }
+    return;
+};
