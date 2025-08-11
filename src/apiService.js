@@ -400,7 +400,7 @@ export const addUnregisteredCaseApi = async (caseData) => {
             ? caseData.reported_at.toISOString().split('.')[0]
             : caseData.reported_at
     };
-    const response = await fetch(`${API_BASE_URL}/unregistered-cases`, {
+    const response = await fetch(`${API_BASE_URL}/unregistered-cases/`, {
         method: 'POST',
         headers,
         body: JSON.stringify(formattedData)
@@ -686,7 +686,7 @@ export const getUnregisteredCaseByIdApi = async (id) => {
 export const getUnregisteredArrivalsManagementApi = async () => {
     const headers = getAuthHeaders();
     if (!headers) throw new Error("Authentication token not found.");
-    const response = await fetch(`${API_BASE_URL}/unregistered-cases`, {
+    const response = await fetch(`${API_BASE_URL}/unregistered-cases/`, {
         method: 'GET',
         headers
     });
