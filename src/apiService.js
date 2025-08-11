@@ -149,7 +149,7 @@ export const updateRefugeeRecordApi = async (refugeeId, updateData) => {
 export const addRefugeeCaseApi = async (caseData) => {
     const headers = getAuthHeaders();
     if (!headers) throw new Error("Authentication token not found.");
-    const response = await fetch(`${API_BASE_URL}/refugees`, { // WHAT CHANGED: Endpoint is /refugees (POST)
+    const response = await fetch(`${API_BASE_URL}/refugees/`, { // WHAT CHANGED: Endpoint is /refugees (POST)
         method: 'POST',
         headers,
         body: JSON.stringify(caseData)
@@ -712,7 +712,7 @@ export const addRefugeeRecordApi = async (recordData) => {
 export const getRefugeeCasesManagementApi = async () => {
     const headers = getAuthHeaders();
     if (!headers) throw new Error("Authentication token not found.");
-    const response = await fetch(`${API_BASE_URL}/refugees`, {
+    const response = await fetch(`${API_BASE_URL}/refugees/`, {
         method: 'GET',
         headers
     });
