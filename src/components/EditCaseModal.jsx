@@ -19,7 +19,13 @@ export const EditCaseModal = ({ caseId, onClose, onSaveSuccess }) => {
 
   // WHAT CHANGED: Updated handleStatusChange to handle both status and name changes
   const handleStatusChange = (e) => {
-    setNewStatus(e.target.value);
+    // Always trim and match valid statuses
+    const value = e.target.value.trim();
+    if (["Pending", "Under Investigation", "Case Closed"].includes(value)) {
+      setNewStatus(value);
+    } else {
+      setNewStatus(""); // fallback if invalid
+    }
   };
 
 
@@ -59,7 +65,8 @@ export const EditCaseModal = ({ caseId, onClose, onSaveSuccess }) => {
 
           <div>
             <label className="input-label">Update Status</label>
-            <select className="input-field" value={newStatus} onChange={handleStatusChange}>
+            <select className="input-field" value={newStatus} onChange={handleStatusChange} required>
+              <option value="">Select status</option>
               <option value="Pending">Pending</option>
               <option value="Under Investigation">Under Investigation</option>
               <option value="Case Closed">Case Closed</option>
