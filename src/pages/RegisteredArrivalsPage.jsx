@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getForeignersApi, deleteForeignerApi, getVisitorRegistrationsApi, getForeignersByStatusApi, exportVisitorRegistrationsApi } from '../apiService';
+import { getForeignersApi, deleteForeignerApi, getVisitorRegistrationsApi, getForeignersByStatusApi, exportVisitorRegistrationsApi, getVisitorRegistrationByIdApi, deleteVisitorRegistrationApi } from '../apiService';
 import { CustomScrollbarStyles } from '../components/CustomScrollbarStyles';
 import LoadingSpinner, { PoliceFullPageLoading } from '../components/LoadingSpinner';
 import ForeignerDetailsPage from './ForeignerDetailsPage';
@@ -13,7 +13,7 @@ import EditForeignerPage from './EditForeignerPage'; // WHAT CHANGED: Import for
 
 import { Eye, Pencil, Trash2 } from 'lucide-react'; // Importing icons from lucide-react
 // Helper component for the table rows
-const ForeignerTableRow = ({ foreigner, onDeleteSuccess, onViewDetails, onEditDetails, onDeleteRequest }) => {
+const ForeignerTableRow = ({ foreigner, onDeleteSuccess, onViewDetails, onEditDetails, onDeleteRequest, activeTab }) => {
   const navigate = useNavigate();
 
   let visaStatusText = 'N/A';
@@ -70,7 +70,7 @@ const ForeignerTableRow = ({ foreigner, onDeleteSuccess, onViewDetails, onEditDe
       <td className="px-6 py-4 text-left whitespace-nowrap overflow-hidden text-ellipsis">{foreigner.indian_address || 'N/A'}</td>
       <td className="px-6 py-4 text-left whitespace-nowrap overflow-hidden text-ellipsis">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${visaStatusBgColor} ${visaStatusColor}`}>
-          {visaStatusText} {/* Display calculated text, not foreigner.status here for consistency with colors */}
+          {visaStatusText}
         </span>
       </td>
       <td className="px-6 py-4 text-left whitespace-nowrap overflow-hidden text-ellipsis">
@@ -79,30 +79,53 @@ const ForeignerTableRow = ({ foreigner, onDeleteSuccess, onViewDetails, onEditDe
             onClick={() => onViewDetails(foreigner.foreigner_id)}
             className="text-gray-600 "
           >
-            <Eye className="w-5 h-5 text-blue-400" /> {/* Larger size, blue color */}
+            <Eye className="w-5 h-5 text-blue-400" />
           </button>
-          <button
-            onClick={() => onEditDetails(foreigner.foreigner_id)}
-            className="text-white "
-          >
-            <Pencil className="w-4 h-4 text-yellow-400" /> {/* Larger size, yellow color */}
-          </button>
+          {activeTab !== 'Registered By Visitor' && (
+            <button
+              onClick={() => onEditDetails(foreigner.foreigner_id)}
+              className="text-white "
+            >
+              <Pencil className="w-4 h-4 text-yellow-400" />
+            </button>
+          )}
           <button
             onClick={handleRequestDelete}
             className="text-white "
           >
-            <Trash2 className="w-4 h-4 text-red-400" /> {/* Larger size, red color */}
-
+            <Trash2 className="w-4 h-4 text-red-400" />
           </button>
         </div>
-
-
       </td>
     </tr>
   );
 };
 
 const RegisteredArrivalsPage = () => {
+  // Fix: Define missing handleVisitorExportClick
+  const handleVisitorExportClick = async () => {
+    try {
+      const blob = await exportVisitorRegistrationsApi();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'visitor-registrations.csv';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Visitor registrations exported successfully!');
+    } catch (error) {
+      console.error('Failed to export visitor registrations:', error);
+      toast.error(`Failed to export visitor registrations: ${error.message}`);
+    }
+  };
+
+  // Fix: Define missing handleCancelDelete
+  const handleCancelDelete = () => {
+    setShowDeleteConfirmModal(false);
+    setForeignerToDelete(null);
+  };
   const navigate = useNavigate();
   const [foreigners, setForeigners] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -112,6 +135,8 @@ const RegisteredArrivalsPage = () => {
   const tabDataCache = useRef(new Map()); // Cache for tab data to avoid redundant API calls
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedForeignerId, setSelectedForeignerId] = useState(null);
+  // Track if details modal is for visitor registration
+  const [isVisitorDetails, setIsVisitorDetails] = useState(false);
   // WHAT CHANGED: State for Edit Details modal
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [foreignerToDelete, setForeignerToDelete] = useState(null); // Stores { id, name } of foreigner to delete
@@ -130,7 +155,7 @@ const RegisteredArrivalsPage = () => {
 
   const fetchForeignersData = async (tab = activeTab) => {
     setLoading(true);
-    
+
     // Check if data is already cached for this tab
     if (tabDataCache.current.has(tab)) {
       const cachedData = tabDataCache.current.get(tab);
@@ -140,7 +165,7 @@ const RegisteredArrivalsPage = () => {
       console.log(`✅ Using cached data for tab: ${tab}`);
       return;
     }
-    
+
     let data = [];
     try {
       if (tab === 'All') {
@@ -230,14 +255,14 @@ const RegisteredArrivalsPage = () => {
         setForeigners([]);
         setFilteredForeigners([]);
       }
-      
+
       // Cache the fetched data for this tab
       tabDataCache.current.set(tab, data);
       console.log(`✅ Cached data for tab: ${tab}`);
-      
+
     } catch (error) {
       console.error('Failed to fetch foreigners:', error);
-      toast.info(`No data Found`);
+      toast.info(`No data found: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -307,7 +332,6 @@ const RegisteredArrivalsPage = () => {
       default:
         result = dataToFilter;
         break;
-
     }
     setFilteredForeigners(result);
   };
@@ -327,7 +351,13 @@ const RegisteredArrivalsPage = () => {
     navigate('/foreigners/add');
   };
   // WHAT CHANGED: Handler to open the details modal
+  // Handler to open details modal, determines if it's a visitor registration
   const handleViewDetails = (foreignerId) => {
+    if (activeTab === 'Registered By Visitor') {
+      setIsVisitorDetails(true);
+    } else {
+      setIsVisitorDetails(false);
+    }
     setSelectedForeignerId(foreignerId);
     setShowDetailsModal(true);
   };
@@ -339,6 +369,7 @@ const RegisteredArrivalsPage = () => {
   const handleCloseDetailsModal = () => {
     setShowDetailsModal(false);
     setSelectedForeignerId(null);
+    setIsVisitorDetails(false);
   };
 
   // WHAT CHANGED: Handler to open the Edit Details modal
@@ -357,47 +388,6 @@ const RegisteredArrivalsPage = () => {
     setForeignerToDelete({ id, name });
     setShowDeleteConfirmModal(true);
   };
-
-  // WHAT CHANGED: Handler for confirming deletion from modal
-  const handleConfirmDelete = async () => {
-    if (foreignerToDelete) {
-      try {
-        await deleteForeignerApi(foreignerToDelete.id);
-        toast.success(`${foreignerToDelete.name}'s record deleted successfully!`);
-        fetchForeignersData(activeTab); // Refresh data after deletion
-      } catch (error) {
-        console.error('Failed to delete foreigner:', error);
-        toast.error(`Failed to delete record: ${error.message}`);
-      } finally {
-        setShowDeleteConfirmModal(false);
-        setForeignerToDelete(null);
-      }
-    }
-  };
-
-  // WHAT CHANGED: Handler for canceling deletion from modal
-  const handleCancelDelete = () => {
-    setShowDeleteConfirmModal(false);
-    setForeignerToDelete(null);
-  };
-  const handleVisitorExportClick = async () => {
-    try {
-      const blob = await exportVisitorRegistrationsApi();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'visitor-registrations.csv'; // <-- use .csv
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success('Visitor registrations exported successfully!');
-
-    } catch (error) {
-      console.error('Failed to export visitor registrations:', error);
-      toast.error(`Failed to export visitor registrations: ${error.message}`);
-    }
-  };
   const handleExportClick = async () => {
     try {
       // Map tab names to export slugs
@@ -414,6 +404,55 @@ const RegisteredArrivalsPage = () => {
       toast.success(`Exported ${activeTab} data successfully!`);
     } catch (err) {
       toast.error(err.message || "Export failed");
+    }
+  };
+
+  // Enhanced delete handler to support both foreigners and visitors
+  const handleConfirmDelete = async () => {
+    if (foreignerToDelete) {
+      try {
+        if (activeTab === 'Registered By Visitor') {
+          await deleteVisitorRegistrationApi(foreignerToDelete.id);
+          toast.success('Visitor registration deleted successfully!');
+          fetchForeignersData('Registered By Visitor');
+        } else {
+          await deleteForeignerApi(foreignerToDelete.id);
+          toast.success(`${foreignerToDelete.name}'s record deleted successfully!`);
+          fetchForeignersData(activeTab);
+        }
+      } catch (error) {
+        console.error('Failed to delete:', error);
+        toast.error(`Failed to delete record: ${error.message}`);
+      } finally {
+        setShowDeleteConfirmModal(false);
+        setForeignerToDelete(null);
+      }
+    }
+  };
+  // Handler to view visitor registration details
+  const handleViewVisitorDetails = async (submissionId) => {
+    try {
+      const details = await getVisitorRegistrationByIdApi(submissionId);
+      // You can show these details in a modal or details component
+      console.log('Visitor Registration Details:', details);
+      toast.info('Visitor registration details loaded!');
+      // setSelectedVisitorDetails(details); // If you have a modal/component for details
+      // setShowVisitorDetailsModal(true);
+    } catch (error) {
+      console.error('Failed to fetch visitor registration details:', error);
+      toast.error(`Failed to load visitor registration: ${error.message}`);
+    }
+  };
+
+  // Handler to delete visitor registration
+  const handleDeleteVisitorRegistration = async (submissionId) => {
+    try {
+      await deleteVisitorRegistrationApi(submissionId);
+      toast.success('Visitor registration deleted successfully!');
+      fetchForeignersData('Registered By Visitor'); // Refresh data after deletion
+    } catch (error) {
+      console.error('Failed to delete visitor registration:', error);
+      toast.error(`Failed to delete visitor registration: ${error.message}`);
     }
   };
 
@@ -514,11 +553,10 @@ const RegisteredArrivalsPage = () => {
                       key={foreigner.foreigner_id || foreigner.passport_number}
                       foreigner={foreigner}
                       onDeleteSuccess={fetchForeignersData}
-                      onViewDetails={handleViewDetails} // WHAT CHANGED: Pass onViewDetails handler
+                      onViewDetails={handleViewDetails}
                       onEditDetails={handleEditDetails}
                       onDeleteRequest={handleDeleteRequest}
-                    // WHAT CHANGED: Pass onDeleteRequest handler
-                    // WHAT CHANGED: Pass onEditDetails handler
+                      activeTab={activeTab}
                     />))
                 ) : (
                   <tr className="text-center">
@@ -530,9 +568,13 @@ const RegisteredArrivalsPage = () => {
           </div>
         </div>
       </div>
-      {/* WHAT CHANGED: Conditionally render ForeignerDetailsPage as a modal */}
+      {/* Conditionally render ForeignerDetailsPage for foreigner or visitor registration */}
       {showDetailsModal && selectedForeignerId && (
-        <ForeignerDetailsPage foreignerId={selectedForeignerId} onClose={handleCloseDetailsModal} />
+        <ForeignerDetailsPage
+          foreignerId={selectedForeignerId}
+          isVisitorRegistration={isVisitorDetails}
+          onClose={handleCloseDetailsModal}
+        />
       )}
       {showEditModal && editingForeignerId && (
         <EditForeignerPage
@@ -543,8 +585,8 @@ const RegisteredArrivalsPage = () => {
       )}
       {showDeleteConfirmModal && foreignerToDelete && (
         <DeleteConfirmationModal
-          itemName="Register Arrival" // As per screenshot
-          message={`Are you sure do you want to delete the user '${foreignerToDelete.name}'! click on delete if you want to.`}
+          itemName={activeTab === 'Registered By Visitor' ? 'Visitor Registration' : 'Register Arrival'}
+          message={`Are you sure do you want to delete the user '${foreignerToDelete.name}'! Click on delete if you want to.`}
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
         />
