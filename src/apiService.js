@@ -721,7 +721,7 @@ export const getRefugeeCasesManagementApi = async () => {
 export const getCitizenshipRequestsManagementApi = async () => {
     const headers = getAuthHeaders();
     if (!headers) throw new Error("Authentication token not found.");
-    const response = await fetch(`${API_BASE_URL}/citizenship-requests`, {
+    const response = await fetch(`${API_BASE_URL}/citizenship-requests/`, {
         method: 'GET',
         headers
     });
