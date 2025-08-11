@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getForeignerByIdApi, updateForeignerApi } from '../apiService';
+import { getForeignerByIdApi, updateForeignerFullDetailsApi } from '../apiService';
 
 function EditForeignerPage({ foreignerId, onClose, onSaveSuccess }) {
     const navigate = useNavigate();
@@ -10,7 +10,9 @@ function EditForeignerPage({ foreignerId, onClose, onSaveSuccess }) {
         name: '',
         nationality: '',
         gender: '',
+        passport_number: '',
         passport_validity: '', // YYYY-MM-DD string
+        visa_number: '',
         visa_type: '', // Direct access from flat structure
         issue_date: '', // Direct access from flat structure
         expiry_date: '', // Direct access from flat structure
@@ -33,14 +35,26 @@ function EditForeignerPage({ foreignerId, onClose, onSaveSuccess }) {
                 const data = await getForeignerByIdApi(foreignerId);
                 setOriginalForeigner(data);
 
+                // Get the latest visa for visa-related fields
+                const latestVisa = (data.visas && data.visas.length > 0)
+                    ? data.visas.reduce((latest, current) => {
+                        const latestExpiry = latest.expiry_date ? new Date(latest.expiry_date) : null;
+                        const currentExpiry = current.expiry_date ? new Date(current.expiry_date) : null;
+                        if (latestExpiry && currentExpiry) { return currentExpiry > latestExpiry ? current : latest; }
+                        return latestExpiry ? latest : current;
+                    })
+                    : null;
+
                 setFormData({
                     name: data.name || '',
                     nationality: data.nationality || '',
                     gender: data.gender || '',
+                    passport_number: data.passport_number || '',
                     passport_validity: data.passport_validity || '', // YYYY-MM-DD string
-                    visa_type: data.visa_type || '', // Direct access from flat structure
-                    issue_date: data.issue_date || '', // Direct access from flat structure
-                    expiry_date: data.expiry_date || '', // Direct access from flat structure
+                    visa_number: latestVisa?.visa_number || '',
+                    visa_type: latestVisa?.visa_type || '', // Get from latest visa
+                    issue_date: latestVisa?.issue_date || '', // Get from latest visa
+                    expiry_date: latestVisa?.expiry_date || '', // Get from latest visa
                     occupation: data.occupation || '',
                     employer: data.employer || '',
                     // WHAT CHANGED: Removed purpose_of_visit from pre-fill
@@ -73,23 +87,30 @@ function EditForeignerPage({ foreignerId, onClose, onSaveSuccess }) {
         e.preventDefault();
         setSaving(true);
         try {
-            const updateData = {
+            // Build payload for backend
+            const payload = {
                 name: formData.name,
                 gender: formData.gender,
+                passport_number: formData.passport_number,
                 passport_validity: formData.passport_validity,
                 nationality: formData.nationality,
                 status: formData.status,
                 occupation: formData.occupation,
                 employer: formData.employer,
                 indian_address: formData.indian_address,
-                // WHAT CHANGED: Removed purpose_of_visit from updateData
-                expiry_date: formData.expiry_date,
-                issue_date: formData.issue_date,
-                visa_type: formData.visa_type
+                visas: [
+                    {
+                        id: latestVisa?.id,
+                        action: 'update',
+                        visa_number: formData.visa_number,
+                        visa_type: formData.visa_type,
+                        issue_date: formData.issue_date,
+                        expiry_date: formData.expiry_date
+                    }
+                ]
             };
-
-            await updateForeignerApi(foreignerId, updateData);
-            toast.success('Foreigner record updated successfully!');
+            await updateForeignerFullDetailsApi(foreignerId, payload);
+            toast.success('Foreigner and visa record updated successfully!');
             onSaveSuccess();
             onClose();
         } catch (err) {
@@ -164,19 +185,19 @@ function EditForeignerPage({ foreignerId, onClose, onSaveSuccess }) {
 
                 {/* Form Fields - Editable */}
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Serial Number (Read-only as per design) */}
+                    {/* Serial Number (Read-only, always visible) */}
                     <div>
                         <label className="input-label">Serial Number</label>
                         <input type="text" value={originalForeigner.foreigner_id || originalForeigner.id || 'N/A'} readOnly className="input-field text-gray-400 opacity-70 cursor-not-allowed" />
                     </div>
 
-                    {/* Fullname */}
+                    {/* Fullname (editable) */}
                     <div>
                         <label className="input-label">Fullname</label>
-                        <input type="text" name="name" value={formData.name} onChange={handleChange} className="input-field"  />
+                        <input type="text" name="name" value={formData.name} onChange={handleChange} className="input-field" />
                     </div>
 
-                    {/* Nationality */}
+                    {/* Nationality (editable) */}
                     <div>
                         <label className="input-label">Nationality</label>
                         <input type="text" name="nationality" value={formData.nationality} onChange={handleChange} className="input-field" required />
@@ -193,40 +214,40 @@ function EditForeignerPage({ foreignerId, onClose, onSaveSuccess }) {
                         </select>
                     </div>
 
-                    {/* Passport Number (Read-only as per design and typical backend logic) */}
+                    {/* Passport Number (read-only) */}
                     <div>
                         <label className="input-label">Passport Number</label>
-                        <input type="text" value={originalForeigner.passport_number || 'N/A'} readOnly className="input-field text-gray-400 opacity-70 cursor-not-allowed" />
+                        <input type="text" name="passport_number" value={formData.passport_number || ''} readOnly className="input-field text-gray-400 opacity-70 cursor-not-allowed" />
                     </div>
 
                     {/* Passport Validity */}
                     <div>
                         <label className="input-label">Passport Validity</label>
-                        <input type="date" name="passport_validity" value={formData.passport_validity} onChange={handleChange} className="input-field"  />
+                        <input type="date" name="passport_validity" value={formData.passport_validity} onChange={handleChange} className="input-field" />
                     </div>
 
                     {/* Visa Number (Read-only as per design and typical backend logic) */}
                     <div>
                         <label className="input-label">Visa Number</label>
-                        <input type="text" value={latestVisa?.visa_number || 'N/A'} readOnly className="input-field text-gray-400 opacity-70 cursor-not-allowed" />
+                        <input type="text" name="visa_number" value={formData.visa_number || ''} onChange={handleChange} className="input-field" />
                     </div>
 
                     {/* Visa Expiry (editable, part of general ForeignerUpdate if visa is single/primary) */}
                     <div>
                         <label className="input-label">Visa Expiry</label>
-                        <input type="date" name="expiry_date" value={formData.expiry_date} onChange={handleChange} className="input-field"  />
+                        <input type="date" name="expiry_date" value={formData.expiry_date} onChange={handleChange} className="input-field" />
                     </div>
 
-                    {/* Visa Type (editable) */}
+                    {/* Visa Type (read-only) */}
                     <div>
                         <label className="input-label">Visa Type</label>
-                        <input type="text" name="visa_type" value={formData.visa_type} onChange={handleChange} className="input-field"  />
+                        <input type="text" name="visa_type" value={formData.visa_type || ''} onChange={handleChange} className="input-field" />
                     </div>
 
                     {/* Date of Visit (Visa Issue Date) (editable) */}
                     <div>
                         <label className="input-label">Date of Visit</label>
-                        <input type="date" name="issue_date" value={formData.issue_date} onChange={handleChange} className="input-field"  />
+                        <input type="date" name="issue_date" value={formData.issue_date} onChange={handleChange} className="input-field" />
                     </div>
 
                     {/* Occupation */}
