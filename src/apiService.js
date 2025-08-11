@@ -19,8 +19,8 @@ export const updateOutOfViewCaseApi = async (caseId, updateData) => {
 
 // src/apiService.js
 // This file centralizes all API calls to your FastAPI backend.
-
-const API_BASE_URL =  'https://sspbackend-production.up.railway.app';
+//const API_BASE_URL = 'https://ssp-backend-1.onrender.com'; // Your FastAPI backend URL
+ const API_BASE_URL =  'https://sspbackend-production.up.railway.app';
 
 // --- CACHING SYSTEM ---
 const apiCache = new Map();
@@ -379,7 +379,8 @@ export const addForeignerApi = async (foreignerData) => {
 export const updateForeignerApi = async (foreignerId, updateData) => {
     const headers = getAuthHeaders();
     if (!headers) throw new Error("Authentication token not found.");
-    const formattedUpdateData = { ...updateData };
+    // Remove serial number fields from update payload
+    const { foreigner_id, id, serial_number, ...formattedUpdateData } = updateData;
     if (formattedUpdateData.passport_validity instanceof Date) {
         formattedUpdateData.passport_validity = formattedUpdateData.passport_validity.toISOString().split('T')[0];
     }
@@ -861,6 +862,16 @@ export const addOutOfViewCaseApi = async (caseData) => {
         method: 'POST',
         headers,
         body: JSON.stringify(caseData)
+    });
+    return handleResponse(response);
+};
+export const updateForeignerFullDetailsApi = async (foreignerId, fullDetailsData) => {
+    const headers = getAuthHeaders();
+    if (!headers) throw new Error("Authentication token not found.");
+    const response = await fetch(`${API_BASE_URL}/foreigners/${foreignerId}/full-details`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(fullDetailsData)
     });
     return handleResponse(response);
 };
