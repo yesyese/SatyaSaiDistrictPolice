@@ -264,7 +264,7 @@ export const logoutUserApi = async () => {
 };
 // WHAT CHANGED: New API to fetch audit logs with filters
 export const getAuditLogsApi = async (filters = {}) => {
-    const cacheKey = getCacheKey('/audit-logs', filters);
+    const cacheKey = getCacheKey('/audit-logs/', filters);
     const cached = getCachedData(cacheKey);
     if (cached) return cached;
 
