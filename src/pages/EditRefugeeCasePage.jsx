@@ -160,7 +160,6 @@ function EditRefugeeCasePage({ refugeeId, onClose, onSaveSuccess }) {
                             <option value="Decision Pending">Decision Pending</option>
                             <option value="Granted">Granted</option>
                             <option value="Rejected">Rejected</option>
-                            <option value="Asylum Seeker">Asylum Seeker</option>
                         </select>
                     </div>
 
