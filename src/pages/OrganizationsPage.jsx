@@ -184,7 +184,7 @@ function OrganizationsPage() {
       <div className="flex-1 p-6 bg-[#070b13] min-h-screen text-gray-100 font-sans">
         <div className="bg-[#141824] p-6 rounded-lg shadow-xl border border-gray-800">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-xl font-semibold text-gray-50">Organizations Management System</h1>
+            <h1 className="text-xl font-semibold text-gray-50">Police Stations</h1>
             <div className="flex space-x-2">
               <button
                 onClick={handleExportClick}
@@ -192,12 +192,7 @@ function OrganizationsPage() {
               >
                 Export
               </button>
-              <button
-                onClick={handleAddPoliceStationClick}
-                className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
-              >
-                + Add Police Station
-              </button>
+             
             </div>
           </div>
           <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-250px)] rounded-lg shadow-lg border border-gray-800 custom-scrollbar">
@@ -232,18 +227,18 @@ function OrganizationsPage() {
                        
                         <td className="px-6 py-4 text-left">
                           <div className="flex space-x-2">
-                            <button
+{/*                             <button
                               onClick={() => handleViewDetails(user.id)}
                               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded-md text-xs transition-colors duration-200"
                             >
                               Edit
-                            </button>
-                            <button
+                            </button> */}
+{/*                             <button
                               onClick={() => handleDeleteRequest(user.id, user.username)}
                               className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-3 rounded-md text-xs transition-colors duration-200"
                             >
                               Delete
-                            </button>
+                            </button> */}
                           </div>
                         </td>
                       </tr>
@@ -282,3 +277,4 @@ function OrganizationsPage() {
 }
 
 export default OrganizationsPage;
+
