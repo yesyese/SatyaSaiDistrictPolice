@@ -111,6 +111,11 @@ function UserDetailsModal({ userId, onClose }) {
                         <label className="input-label">Police Station</label>
                         <input type="text" value={userData.station_id || 'N/A'} readOnly className="input-field" />
                     </div>
+                    {/* Mandal */}
+                    <div>
+                        <label className="input-label">Mandal</label>
+                        <input type="text" value={userData.mandal || 'N/A'} readOnly className="input-field" />
+                    </div>
                     <div>
                         <label className="input-label">Contact</label>
                         <input type="text" value={userData.contact || 'N/A'} readOnly className="input-field" />
