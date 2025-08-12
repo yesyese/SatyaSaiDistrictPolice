@@ -71,8 +71,8 @@ const usePageName = () => {
   const path = location.pathname;
 
   if (path.includes('dashboard')) return 'Dashboard'; // Handle dashboard specifically
-  if (path.includes('registered-arrivals')) return 'Registered Arrivals';
   if (path.includes('unregistered-arrivals')) return 'Unregistered Arrivals';
+  if (path.includes('registered-arrivals')) return 'Registered Arrivals';
   if (path.includes('overstays')) return 'Overstays';
   if (path.includes('refugees')) return 'Refugees';
   if (path.includes('citizenship-requests')) return 'Citizenship Requests';
@@ -81,7 +81,9 @@ const usePageName = () => {
   if (path.includes('users')) return 'User Management'; // Added for User Management
   if (path.includes('notifications')) return 'Notifications'; // Added for Notifications
   if (path.includes('settings')) return 'Settings'; // Added for Settings
-  if (path.includes('security')) return 'Security'; // Added for Security
+  if (path.includes('security')) return 'Security';
+  // Added for Security
+  if (path.includes('organizations')) return 'Police Stations';
   if (path.includes('help')) return 'Help'; // Added for Help
   // Add other pages as needed
   return 'Dashboard'; // Default if no match
@@ -301,3 +303,4 @@ const Header = ({ user, onLogout }) => {
 
 
 export default DashboardPage;
+
