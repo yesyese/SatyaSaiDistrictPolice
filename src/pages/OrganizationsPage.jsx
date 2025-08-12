@@ -202,8 +202,8 @@ function OrganizationsPage() {
                   <th scope="col" className="px-6 py-3 text-left">NAME</th>
                   <th scope="col" className="px-6 py-3 text-left">USERS</th>
                   <th scope="col" className="px-6 py-3 text-left">MANDAL</th>
-                  <th scope="col" className="px-6 py-3 text-left">ACTIONS</th>
-                </tr>
+{/*                   <th scope="col" className="px-6 py-3 text-left">ACTIONS</th>
+                </tr> */}
               </thead>
               <tbody>
                 {loading ? (
@@ -225,7 +225,7 @@ function OrganizationsPage() {
                         <td className="px-6 py-4 text-left whitespace-nowrap overflow-hidden text-ellipsis">{user.username || 'N/A'}</td>
                         <td className="px-6 py-4 text-left whitespace-nowrap overflow-hidden text-ellipsis">{org.station_name || 'N/A'}</td> {/* Using station_name for Mandal for now */}
                        
-                        <td className="px-6 py-4 text-left">
+{/*                         <td className="px-6 py-4 text-left"> */}
                           <div className="flex space-x-2">
 {/*                             <button
                               onClick={() => handleViewDetails(user.id)}
@@ -240,8 +240,8 @@ function OrganizationsPage() {
                               Delete
                             </button> */}
                           </div>
-                        </td>
-                      </tr>
+{/*                          </td>*/}
+                      </tr> 
                     ))
                   ))
                 ) : (
@@ -277,4 +277,5 @@ function OrganizationsPage() {
 }
 
 export default OrganizationsPage;
+
 
