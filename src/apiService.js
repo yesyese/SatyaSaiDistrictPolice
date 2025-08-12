@@ -271,7 +271,7 @@ export const getAuditLogsApi = async (filters = {}) => {
     const headers = getAuthHeaders();
     if (!headers) throw new Error("Authentication token not found.");
     const queryParams = new URLSearchParams(filters).toString();
-    const url = `${API_BASE_URL}/audit-logs${queryParams ? `?${queryParams}` : ''}`;
+    const url = `${API_BASE_URL}/audit-logs/${queryParams ? `?${queryParams}` : ''}`;
     const response = await fetch(url, { headers });
     const data = await handleResponse(response);
     setCachedData(cacheKey, data);
