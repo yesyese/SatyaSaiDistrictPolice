@@ -8,7 +8,8 @@ function UserProfileModal({ user, onClose, onProfileUpdated }) { // WHAT CHANGED
     const [formData, setFormData] = useState({
         username: '',
         email: '',
-        contact: '', // Assuming this field exists in your User model
+        contact: '',
+        mandal: '' // Assuming this field exists in your User model
     });
     const [loading, setLoading] = useState(true); // For initial fetch
     const [saving, setSaving] = useState(false); // For save button loading
@@ -24,7 +25,8 @@ function UserProfileModal({ user, onClose, onProfileUpdated }) { // WHAT CHANGED
                 setFormData({
                     username: currentUserData.username || '',
                     email: currentUserData.email || '',
-                    contact: currentUserData.contact || '', // Assuming this field exists
+                    contact: currentUserData.contact || '',
+                    mandal: currentUserData.mandal || '' // Assuming this field exists
                 });
             } catch (err) {
                 console.error('Failed to load user profile:', err);
@@ -49,7 +51,8 @@ function UserProfileModal({ user, onClose, onProfileUpdated }) { // WHAT CHANGED
             const updateData = {
                 username: formData.username,
                 email: formData.email,
-                contact: formData.contact, // Send contact number
+                contact: formData.contact,
+                mandal: formData.mandal
             };
              await updateMyProfileApi(updateData);
             toast.success('Profile updated successfully!');
@@ -111,6 +114,7 @@ function UserProfileModal({ user, onClose, onProfileUpdated }) { // WHAT CHANGED
                         <span className="text-lg font-semibold text-white">{user?.username || 'N/A'}</span> {/* Use prop for current user's username */}
                         <span className="text-sm text-gray-400">{user?.email || 'N/A'}</span> {/* Use prop for current user's email */}
                         <span className="text-xs text-gray-500">{user?.station_id || 'N/A'}</span> {/* Use prop for current user's station */}
+                        <span className="text-xs text-gray-500">{user?.mandal || 'N/A'}</span> {/* Use prop for current user's mandal */}
                     </div>
                 </div>
 
@@ -144,6 +148,11 @@ function UserProfileModal({ user, onClose, onProfileUpdated }) { // WHAT CHANGED
                     <div className="md:col-span-2"> {/* Spans full width */}
                         <label className="input-label">Police Station</label>
                         <input type="text" value={user?.station_id || 'N/A'} onChange={handleChange} className="input-field text-gray-400 opacity-70 " />
+                    </div>
+
+                    <div>
+                        <label className="input-label">Mandal</label>
+                        <input type="text" value={formData?.mandal || 'N/A'} onChange={handleChange} className="input-field text-gray-400 opacity-70 " />
                     </div>
 
                     <div className="col-span-full flex justify-end space-x-4 mt-6">
