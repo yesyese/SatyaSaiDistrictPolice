@@ -10,7 +10,9 @@ function EditUserDetailsModal({ userId, onClose, onSaveSuccess, currentUser }) {
         email: '',
         contact_number: '', // Assuming this field exists in your User model and is editable
         role: '', // Role is displayed but might not be directly editable by user themselves
-        station_id: '', // Police Station is displayed but might not be directly editable by user themselves
+        station_id: '',
+        // Police Station is displayed but might not be directly editable by user themselves
+        mandal: '' // Mandal is displayed but might not be directly editable by user themselves
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -32,6 +34,7 @@ function EditUserDetailsModal({ userId, onClose, onSaveSuccess, currentUser }) {
                     contact_number: data.contact_number || '', // Assuming contact_number is part of User model
                     role: data.role || 'Admin',
                     station_id: data.station_id || '',
+                    mandal: data.mandal || ''
                 });
             } catch (err) {
                 console.error('Failed to fetch user details for editing:', err);
@@ -69,6 +72,7 @@ function EditUserDetailsModal({ userId, onClose, onSaveSuccess, currentUser }) {
                 // For now, we are sending the values from formData, assuming backend handles immutability.
                 role: formData.role,
                 station_id: formData.station_id,
+                mandal: formData.mandal
             };
 
             await updateUserApi(userId, updateData);
@@ -174,6 +178,12 @@ function EditUserDetailsModal({ userId, onClose, onSaveSuccess, currentUser }) {
                     <div>
                         <label className="input-label">Police Station</label>
                         <input type="text" name="station_id" value={formData.station_id} onChange={handleChange} className="input-field" />
+                    </div>
+
+                    {/* Mandal */}
+                    <div>
+                        <label className="input-label">Mandal</label>
+                        <input type="text" name="mandal" value={formData.mandal} onChange={handleChange} className="input-field" />
                     </div>
 
                     {/* Contact Number (Added as per screenshot) */}
