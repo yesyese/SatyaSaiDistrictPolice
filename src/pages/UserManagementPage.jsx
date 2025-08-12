@@ -12,7 +12,7 @@ const UserTableRow = ({ user, currentUserId, onDeleteSuccess, onViewDetails, onD
   // Determine status styling based on backend's user.status field
   let statusText = user.status || 'N/A';
   let statusColorClass = 'text-gray-400';
-  let statusBgClass = 'bg-gray-700';FOrganiz
+  let statusBgClass = 'bg-gray-700';
 
   if (user.status === 'Active') {
     statusColorClass = 'text-green-400';
@@ -378,3 +378,4 @@ const UserManagementPage = ({ currentUser }) => {
 
 
 export default UserManagementPage;
+
