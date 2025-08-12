@@ -162,7 +162,7 @@ const OverstaysPage = () => {
                 </button>
                 <button
                // onClick={handleActiveCasesClick}
-                  className="flex items-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200" */}
+                  className="flex items-center bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200" 
                 >
                   <span className="mr-1">{overstayData.length}</span> Active Cases
                 </button>
