@@ -202,8 +202,8 @@ function OrganizationsPage() {
                   <th scope="col" className="px-6 py-3 text-left">NAME</th>
                   <th scope="col" className="px-6 py-3 text-left">USERS</th>
                   <th scope="col" className="px-6 py-3 text-left">MANDAL</th>
-{/*                   <th scope="col" className="px-6 py-3 text-left">ACTIONS</th>
-                </tr> */}
+{/*                   <th scope="col" className="px-6 py-3 text-left">ACTIONS</th>*/}
+                </tr> 
               </thead>
               <tbody>
                 {loading ? (
@@ -277,5 +277,6 @@ function OrganizationsPage() {
 }
 
 export default OrganizationsPage;
+
 
 
