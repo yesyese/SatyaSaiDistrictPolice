@@ -192,7 +192,12 @@ function OrganizationsPage() {
               >
                 Export
               </button>
-             
+              <button
+                onClick={handleAddPoliceStationClick}
+                className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
+              >
+                + Add Police Station
+              </button>
             </div>
           </div>
           <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-250px)] rounded-lg shadow-lg border border-gray-800 custom-scrollbar">
@@ -201,9 +206,9 @@ function OrganizationsPage() {
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left">NAME</th>
                   <th scope="col" className="px-6 py-3 text-left">USERS</th>
+                  <th scope="col" className="px-6 py-3 text-left">STATION ID</th>
                   <th scope="col" className="px-6 py-3 text-left">MANDAL</th>
-{/*                   <th scope="col" className="px-6 py-3 text-left">ACTIONS</th>*/}
-                </tr> 
+                </tr>
               </thead>
               <tbody>
                 {loading ? (
@@ -224,24 +229,8 @@ function OrganizationsPage() {
                         {/* Render user details for each user */}
                         <td className="px-6 py-4 text-left whitespace-nowrap overflow-hidden text-ellipsis">{user.username || 'N/A'}</td>
                         <td className="px-6 py-4 text-left whitespace-nowrap overflow-hidden text-ellipsis">{org.station_name || 'N/A'}</td> {/* Using station_name for Mandal for now */}
-                       
-{/*                         <td className="px-6 py-4 text-left"> */}
-                          <div className="flex space-x-2">
-{/*                             <button
-                              onClick={() => handleViewDetails(user.id)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded-md text-xs transition-colors duration-200"
-                            >
-                              Edit
-                            </button> */}
-{/*                             <button
-                              onClick={() => handleDeleteRequest(user.id, user.username)}
-                              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-3 rounded-md text-xs transition-colors duration-200"
-                            >
-                              Delete
-                            </button> */}
-                          </div>
-{/*                          </td>*/}
-                      </tr> 
+                        <td className="px-6 py-4 text-left whitespace-nowrap overflow-hidden text-ellipsis">{user.mandal || 'N/A'}</td>
+                      </tr>
                     ))
                   ))
                 ) : (
@@ -277,6 +266,3 @@ function OrganizationsPage() {
 }
 
 export default OrganizationsPage;
-
-
-
