@@ -65,6 +65,9 @@ const UserTableRow = ({ user, currentUserId, onDeleteSuccess, onViewDetails, onD
             {statusText}
           </span>
         </td>
+        {/* MANDAL */}
+        <td className="px-6 py-4 text-left">{user.mandal || 'N/A'}</td>
+        
         {/* LAST LOGIN */}
         <td className="px-6 py-4 text-left">
           {user.last_login ? new Date(user.last_login).toLocaleString() : 'N/A'}
@@ -107,7 +110,8 @@ const UserManagementPage = ({ currentUser }) => {
     username: '',
     password: '',
     role: 'Admin',
-    station_id: ''
+    station_id: '',
+    mandal: ''
   });
 
   const currentUserId = currentUser?.id;
@@ -261,6 +265,7 @@ const UserManagementPage = ({ currentUser }) => {
                   <option value="SuperAdmin">SuperAdmin</option>
                 </select>
                 <input type="text" name="station_id" placeholder="Station ID (Optional)" value={newUserData.station_id} onChange={handleNewUserChange} className="input-field" />
+                <input type="text" name="mandal" placeholder="Mandal" value={newUserData.mandal} onChange={handleNewUserChange} className="input-field" required />
                 <div className="col-span-full flex justify-end space-x-4 mt-4">
                   <button
                     type="submit"
@@ -288,8 +293,9 @@ const UserManagementPage = ({ currentUser }) => {
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left">NAME</th>
                   <th scope="col" className="px-6 py-3 text-left">ROLE</th>
-                  <th scope="col" className="px-6 py-3 text-left">POLICE STATION</th>
+                  <th scope="col" className="px-6 py-3 text-left">ORGANIZATION</th>
                   <th scope="col" className="px-6 py-3 text-left">STATUS</th>
+                  <th scope="col" className="px-6 py-3 text-left">MANDAL</th>
                   <th scope="col" className="px-6 py-3 text-left">LAST LOGIN</th>
                   <th scope="col" className="px-6 py-3 text-left">ACTIONS</th>
                 </tr>
@@ -376,6 +382,4 @@ const UserManagementPage = ({ currentUser }) => {
   );
 };
 
-
 export default UserManagementPage;
-
