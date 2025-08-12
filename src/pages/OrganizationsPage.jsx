@@ -186,18 +186,18 @@ function OrganizationsPage() {
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-xl font-semibold text-gray-50">Police Stations</h1>
             <div className="flex space-x-2">
-              <button
+{/*               <button
                 onClick={handleExportClick}
                 className="flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
               >
                 Export
-              </button>
-              <button
+              </button> */}
+{/*               <button
                 onClick={handleAddPoliceStationClick}
                 className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
               >
                 + Add Police Station
-              </button>
+              </button> */}
             </div>
           </div>
           <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-250px)] rounded-lg shadow-lg border border-gray-800 custom-scrollbar">
@@ -266,3 +266,4 @@ function OrganizationsPage() {
 }
 
 export default OrganizationsPage;
+
