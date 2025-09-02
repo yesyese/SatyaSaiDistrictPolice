@@ -27,7 +27,17 @@ function LoginPage({ onLogin, loading }) {
   };
 
   return (
-    <div className="bg-[#111827] text-[#f9fafb] min-h-screen flex items-center justify-center px-4 font-['Inter']">
+        <div 
+      className="min-h-screen flex items-center justify-center px-4 font-['Inter'] text-[#f9fafb]"
+      style={{
+        backgroundImage: 'url(/background.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      <div className="absolute inset-0 bg-black opacity-50"></div>
+      <div className="relative z-10 w-full max-w-md mx-auto">
       <div className="w-full max-w-md mx-auto">
         <div className="text-center mb-8">
           <img src="/police.png" alt="SP Office Admin Portal Logo" className="mx-auto h-20 w-auto" />
@@ -92,6 +102,7 @@ function LoginPage({ onLogin, loading }) {
           </form>
         </div>
       </div>
+    </div>
     </div>
   );
 }
