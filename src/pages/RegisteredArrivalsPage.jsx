@@ -2,18 +2,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getForeignersApi, deleteForeignerApi, getVisitorRegistrationsApi, getForeignersByStatusApi, exportVisitorRegistrationsApi, getVisitorRegistrationByIdApi, deleteVisitorRegistrationApi } from '../apiService';
+import { getForeignersApi, deleteForeignerApi, getVisitorRegistrationsApi, getForeignersByStatusApi, exportVisitorRegistrationsApi } from '../apiService';
 import { CustomScrollbarStyles } from '../components/CustomScrollbarStyles';
 import LoadingSpinner, { PoliceFullPageLoading } from '../components/LoadingSpinner';
 import ForeignerDetailsPage from './ForeignerDetailsPage';
 import DeleteConfirmationModal from './DeleteConfirmationModal'; // WHAT CHANGED: Import DeleteConfirmationModal
 import { exportDataApi } from '../apiService'; // Adjust the path
-
 import EditForeignerPage from './EditForeignerPage'; // WHAT CHANGED: Import for Edit Details Modal
 
 import { Eye, Pencil, Trash2 } from 'lucide-react'; // Importing icons from lucide-react
 // Helper component for the table rows
-const ForeignerTableRow = ({ foreigner, onDeleteSuccess, onViewDetails, onEditDetails, onDeleteRequest, activeTab }) => {
+const ForeignerTableRow = ({ foreigner, onDeleteSuccess, onViewDetails, onEditDetails, onDeleteRequest }) => {
   const navigate = useNavigate();
 
   let visaStatusText = 'N/A';
@@ -70,7 +69,7 @@ const ForeignerTableRow = ({ foreigner, onDeleteSuccess, onViewDetails, onEditDe
       <td className="px-6 py-4 text-left whitespace-nowrap overflow-hidden text-ellipsis">{foreigner.indian_address || 'N/A'}</td>
       <td className="px-6 py-4 text-left whitespace-nowrap overflow-hidden text-ellipsis">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${visaStatusBgColor} ${visaStatusColor}`}>
-          {visaStatusText}
+          {visaStatusText} {/* Display calculated text, not foreigner.status here for consistency with colors */}
         </span>
       </td>
       <td className="px-6 py-4 text-left whitespace-nowrap overflow-hidden text-ellipsis">
@@ -79,53 +78,30 @@ const ForeignerTableRow = ({ foreigner, onDeleteSuccess, onViewDetails, onEditDe
             onClick={() => onViewDetails(foreigner.foreigner_id)}
             className="text-gray-600 "
           >
-            <Eye className="w-5 h-5 text-blue-400" />
+            <Eye className="w-5 h-5 text-blue-400" /> {/* Larger size, blue color */}
           </button>
-          {activeTab !== 'Registered By Visitor' && (
-            <button
-              onClick={() => onEditDetails(foreigner.foreigner_id)}
-              className="text-white "
-            >
-              <Pencil className="w-4 h-4 text-yellow-400" />
-            </button>
-          )}
+          <button
+            onClick={() => onEditDetails(foreigner.foreigner_id)}
+            className="text-white "
+          >
+            <Pencil className="w-4 h-4 text-yellow-400" /> {/* Larger size, yellow color */}
+          </button>
           <button
             onClick={handleRequestDelete}
             className="text-white "
           >
-            <Trash2 className="w-4 h-4 text-red-400" />
+            <Trash2 className="w-4 h-4 text-red-400" /> {/* Larger size, red color */}
+
           </button>
         </div>
+
+
       </td>
     </tr>
   );
 };
 
 const RegisteredArrivalsPage = () => {
-  // Fix: Define missing handleVisitorExportClick
-  const handleVisitorExportClick = async () => {
-    try {
-      const blob = await exportVisitorRegistrationsApi();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'visitor-registrations.csv';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success('Visitor registrations exported successfully!');
-    } catch (error) {
-      console.error('Failed to export visitor registrations:', error);
-      toast.error(`Failed to export visitor registrations: ${error.message}`);
-    }
-  };
-
-  // Fix: Define missing handleCancelDelete
-  const handleCancelDelete = () => {
-    setShowDeleteConfirmModal(false);
-    setForeignerToDelete(null);
-  };
   const navigate = useNavigate();
   const [foreigners, setForeigners] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -135,12 +111,10 @@ const RegisteredArrivalsPage = () => {
   const tabDataCache = useRef(new Map()); // Cache for tab data to avoid redundant API calls
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedForeignerId, setSelectedForeignerId] = useState(null);
-  // Track if details modal is for visitor registration
-  const [isVisitorDetails, setIsVisitorDetails] = useState(false);
-  // WHAT CHANGED: State for Edit Details modal
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [foreignerToDelete, setForeignerToDelete] = useState(null); // Stores { id, name } of foreigner to delete
-
+  const [availableNationalities, setAvailableNationalities] = useState(['All']);
+  const [selectedNationality, setSelectedNationality] = useState('All');
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingForeignerId, setEditingForeignerId] = useState(null);
   const tabToBackendStatus = {
@@ -160,7 +134,10 @@ const RegisteredArrivalsPage = () => {
     if (tabDataCache.current.has(tab)) {
       const cachedData = tabDataCache.current.get(tab);
       setForeigners(cachedData);
-      setFilteredForeigners(cachedData);
+      // Update available nationalities when data is loaded
+      const nationalities = ['All', ...new Set(cachedData.map(f => f.nationality).filter(Boolean))];
+      setAvailableNationalities(nationalities);
+      applyFilter(cachedData, tab, selectedNationality);
       setLoading(false);
       console.log(`✅ Using cached data for tab: ${tab}`);
       return;
@@ -262,17 +239,35 @@ const RegisteredArrivalsPage = () => {
 
     } catch (error) {
       console.error('Failed to fetch foreigners:', error);
-      toast.info(`No data found: ${error.message}`);
+      toast.error(`Failed to load data: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
+
+  // Extract unique nationalities from data
+  const updateNationalities = (data) => {
+    if (!data || !Array.isArray(data)) {
+      setAvailableNationalities(['All']);
+      return;
+    }
+    const nationalities = ['All', ...new Set(data.map(f => f?.nationality).filter(Boolean))];
+    setAvailableNationalities(nationalities);
+  };
+
+  // Update nationalities when data changes
+  useEffect(() => {
+    if (foreigners.length > 0) {
+      updateNationalities(foreigners);
+    }
+  }, [foreigners]);
 
   useEffect(() => {
     let timeout;
 
     const initialLoad = async () => {
       const data = await fetchForeignersData('All');
+      updateNationalities(data);
       timeout = setTimeout(() => {
         if (!initialFetchCompleted.current) {
           toast.success('Foreigner records loaded!');
@@ -289,7 +284,18 @@ const RegisteredArrivalsPage = () => {
   }, []);
 
 
-  const applyFilter = (dataToFilter, currentTab) => {
+  const applyFilter = (dataToFilter, currentTab, nationalityFilter) => {
+    // If no nationality filter is provided, use the current selectedNationality
+    if (nationalityFilter === undefined) {
+      nationalityFilter = selectedNationality;
+    }
+    // Apply nationality filter first if not 'All'
+    let filteredData = dataToFilter;
+    if (nationalityFilter && nationalityFilter !== 'All') {
+      filteredData = dataToFilter.filter(f => f.nationality === nationalityFilter);
+    }
+
+    // Then apply tab-specific filters
     let result = [];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -300,13 +306,13 @@ const RegisteredArrivalsPage = () => {
 
     switch (currentTab) {
       case 'All':
-        result = dataToFilter;
+        result = filteredData;
         break;
       case 'Registered By Visitor':
-        result = dataToFilter.filter(f => f.registered_by_visitor === true);
+        result = filteredData.filter(f => f.registered_by_visitor === true);
         break;
       case 'Expired in 7 days':
-        result = dataToFilter.filter(f => {
+        result = filteredData.filter(f => {
           const expiryDate = getExpiryDate(f);
           if (!expiryDate) return false;
           const daysToExpiry = (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
@@ -314,7 +320,7 @@ const RegisteredArrivalsPage = () => {
         });
         break;
       case 'Expired in 30 days':
-        result = dataToFilter.filter(f => {
+        result = filteredData.filter(f => {
           const expiryDate = getExpiryDate(f);
           if (!expiryDate) return false;
           const daysToExpiry = (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
@@ -322,7 +328,7 @@ const RegisteredArrivalsPage = () => {
         });
         break;
       case 'Expired in 90 days':
-        result = dataToFilter.filter(f => {
+        result = filteredData.filter(f => {
           const expiryDate = getExpiryDate(f);
           if (!expiryDate) return false;
           const daysToExpiry = (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
@@ -330,64 +336,97 @@ const RegisteredArrivalsPage = () => {
         });
         break;
       default:
-        result = dataToFilter;
+        result = filteredData;
         break;
     }
     setFilteredForeigners(result);
   };
 
-
-
-
-
-
   const handleTabClick = (tabName) => {
     setActiveTab(tabName);
-    // WHAT CHANGED: Pass tabName to fetchForeignersData
+    setSelectedNationality('All'); // Reset nationality filter when changing tabs
     fetchForeignersData(tabName);
+  };
+
+  const handleNationalityChange = (e) => {
+    const newNationality = e.target.value;
+    setSelectedNationality(newNationality);
+    applyFilter(foreigners, activeTab, newNationality);
   };
 
   const handleRegisterVisitorClick = () => {
     navigate('/foreigners/add');
   };
-  // WHAT CHANGED: Handler to open the details modal
-  // Handler to open details modal, determines if it's a visitor registration
+
   const handleViewDetails = (foreignerId) => {
-    if (activeTab === 'Registered By Visitor') {
-      setIsVisitorDetails(true);
-    } else {
-      setIsVisitorDetails(false);
-    }
     setSelectedForeignerId(foreignerId);
     setShowDetailsModal(true);
   };
 
-  // WHAT CHANGED: Handler to close the details modal
-
-
-  // WHAT CHANGED: Handler to close the View Details modal
   const handleCloseDetailsModal = () => {
     setShowDetailsModal(false);
     setSelectedForeignerId(null);
-    setIsVisitorDetails(false);
   };
 
-  // WHAT CHANGED: Handler to open the Edit Details modal
   const handleEditDetails = (foreignerId) => {
     setEditingForeignerId(foreignerId);
     setShowEditModal(true);
   };
 
-  // WHAT CHANGED: Handler to close the Edit Details modal and refresh data
-  const handleCloseEditModal = (foreignerId) => {
+  const handleCloseEditModal = (shouldRefresh = false) => {
     setShowEditModal(false);
-    setEditingForeignerId(foreignerId);
-    fetchForeignersData(activeTab); // Refresh data after edit
+    setEditingForeignerId(null);
+    if (shouldRefresh) {
+      fetchForeignersData(activeTab);
+    }
   };
+
   const handleDeleteRequest = (id, name) => {
     setForeignerToDelete({ id, name });
     setShowDeleteConfirmModal(true);
   };
+
+  const handleConfirmDelete = async () => {
+    if (foreignerToDelete) {
+      try {
+        await deleteForeignerApi(foreignerToDelete.id);
+        toast.success('Foreigner deleted successfully');
+        // Refresh the data
+        fetchForeignersData(activeTab);
+      } catch (error) {
+        console.error('Failed to delete foreigner:', error);
+        toast.error('Failed to delete foreigner');
+      } finally {
+        setShowDeleteConfirmModal(false);
+        setForeignerToDelete(null);
+      }
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirmModal(false);
+    setForeignerToDelete(null);
+  };
+
+  const handleVisitorExportClick = async () => {
+    try {
+      const blob = await exportVisitorRegistrationsApi();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'visitor-registrations.csv'; // <-- use .csv
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Visitor registrations exported successfully!');
+
+    } catch (error) {
+      console.error('Failed to export visitor registrations:', error);
+      toast.error(`Failed to export visitor registrations: ${error.message}`);
+    }
+  };
+
   const handleExportClick = async () => {
     try {
       // Map tab names to export slugs
@@ -407,123 +446,86 @@ const RegisteredArrivalsPage = () => {
     }
   };
 
-  // Enhanced delete handler to support both foreigners and visitors
-  const handleConfirmDelete = async () => {
-    if (foreignerToDelete) {
-      try {
-        if (activeTab === 'Registered By Visitor') {
-          await deleteVisitorRegistrationApi(foreignerToDelete.id);
-          toast.success('Visitor registration deleted successfully!');
-          fetchForeignersData('Registered By Visitor');
-        } else {
-          await deleteForeignerApi(foreignerToDelete.id);
-          toast.success(`${foreignerToDelete.name}'s record deleted successfully!`);
-          fetchForeignersData(activeTab);
-        }
-      } catch (error) {
-        console.error('Failed to delete:', error);
-        toast.error(`Failed to delete record: ${error.message}`);
-      } finally {
-        setShowDeleteConfirmModal(false);
-        setForeignerToDelete(null);
-      }
-    }
-  };
-  // Handler to view visitor registration details
-  const handleViewVisitorDetails = async (submissionId) => {
-    try {
-      const details = await getVisitorRegistrationByIdApi(submissionId);
-      // You can show these details in a modal or details component
-      console.log('Visitor Registration Details:', details);
-      toast.info('Visitor registration details loaded!');
-      // setSelectedVisitorDetails(details); // If you have a modal/component for details
-      // setShowVisitorDetailsModal(true);
-    } catch (error) {
-      console.error('Failed to fetch visitor registration details:', error);
-      toast.error(`Failed to load visitor registration: ${error.message}`);
-    }
-  };
-
-  // Handler to delete visitor registration
-  const handleDeleteVisitorRegistration = async (submissionId) => {
-    try {
-      await deleteVisitorRegistrationApi(submissionId);
-      toast.success('Visitor registration deleted successfully!');
-      fetchForeignersData('Registered By Visitor'); // Refresh data after deletion
-    } catch (error) {
-      console.error('Failed to delete visitor registration:', error);
-      toast.error(`Failed to delete visitor registration: ${error.message}`);
-    }
-  };
-
   return (
     <>
-      <CustomScrollbarStyles />
-      <div className="flex-1 p-6 bg-[#070b13] min-h-screen text-gray-100 font-sans custom-scrollbar">
-        <div className="bg-[#141824] p-4 rounded-lg shadow-xl border border-gray-800">
-          {/* Header Section */}
-          <div className="mb-4">
-            {/* Header row: title on left, buttons on right */}
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-xl font-semibold text-gray-50">
-                Foreign Nationals Registered Arrivals
-              </h1>
+    <div className="min-h-screen bg-gray-900 text-white p-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <div className="flex flex-col space-y-4 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h1 className="text-2xl font-bold">Registered Arrivals</h1>
+            <div className="flex items-center space-x-4">
+              {/* New Visitor Button */}
+              <button
+                onClick={() => navigate('/foreigners/add')}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+                title="Add New Visitor"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                New Visitor
+              </button>
 
-              <div className="flex space-x-2">
-                <button
-                  onClick={
-                    activeTab === 'Registered By Visitor'
-                      ? handleVisitorExportClick
-                      : handleExportClick
-                  }
-                  className="flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
+              {/* Export Button */}
+              <button
+                onClick={handleExportClick}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors"
+                title="Export Data"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+                Export
+              </button>
+
+              {/* Nationality Filter Dropdown */}
+              <div className="relative w-48">
+                <select
+                  value={selectedNationality}
+                  onChange={handleNationalityChange}
+                  className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8 appearance-none"
                 >
-                  Export
-                </button>
-
-                {activeTab !== 'Registered By Visitor' && (
-                  <button
-                    onClick={handleRegisterVisitorClick}
-                    className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-200"
-                  >
-                    + Register Visitor
-                  </button>
-                )}
+                  {availableNationalities.map((nationality) => (
+                    <option key={nationality} value={nationality}>
+                      {nationality}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Full-width line that ignores padding */}
-            <div className="-mx-4 mt-4">
-              <hr className="w-full border-t border-gray-700" />
+          {/* Tab Navigation */}
+          <div className="w-full overflow-x-auto">
+            <div className="flex space-x-2 pb-1">
+              {[
+                'All',
+                'Registered By Visitor',
+                'Expired in 7 days',
+                'Expired in 30 days',
+                'Expired in 90 days'
+              ].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => handleTabClick(tab)}
+                  className={`py-2 px-4 text-sm font-medium transition-colors duration-200 whitespace-nowrap
+                    ${activeTab === tab
+                      ? 'bg-blue-500 rounded-md text-white shadow-md'
+                      : 'text-gray-400 bg-gray-800 rounded-md hover:bg-gray-700 hover:text-white'
+                    }`}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
           </div>
-
-
-
-          {/* Tab-like navigation for filtering */}
-          <div className="flex space-x-2 mb-6 ">
-            {[
-              'All',
-              // 'Registered',
-
-              'Registered By Visitor',
-              'Expired in 7 days',
-              'Expired in 30 days',
-              'Expired in 90 days'
-            ].map(tab => (
-              <button
-                key={tab}
-                onClick={() => handleTabClick(tab)}
-                className={`py-1 px-4 text-sm font-medium transition-colors duration-200
-                ${activeTab === tab
-                    ? 'bg-blue-500 rounded-md text-white'
-                    : 'text-gray-400 bg-gray-800 rounded-md hover:text-white'
-                  }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+        </div>
 
           {/* Data Table Container */}
           <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-250px)] rounded-lg shadow-lg border border-gray-800 custom-scrollbar">
@@ -553,10 +555,11 @@ const RegisteredArrivalsPage = () => {
                       key={foreigner.foreigner_id || foreigner.passport_number}
                       foreigner={foreigner}
                       onDeleteSuccess={fetchForeignersData}
-                      onViewDetails={handleViewDetails}
+                      onViewDetails={handleViewDetails} // WHAT CHANGED: Pass onViewDetails handler
                       onEditDetails={handleEditDetails}
                       onDeleteRequest={handleDeleteRequest}
-                      activeTab={activeTab}
+                    // WHAT CHANGED: Pass onDeleteRequest handler
+                    // WHAT CHANGED: Pass onEditDetails handler
                     />))
                 ) : (
                   <tr className="text-center">
@@ -568,13 +571,8 @@ const RegisteredArrivalsPage = () => {
           </div>
         </div>
       </div>
-      {/* Conditionally render ForeignerDetailsPage for foreigner or visitor registration */}
       {showDetailsModal && selectedForeignerId && (
-        <ForeignerDetailsPage
-          foreignerId={selectedForeignerId}
-          isVisitorRegistration={isVisitorDetails}
-          onClose={handleCloseDetailsModal}
-        />
+        <ForeignerDetailsPage foreignerId={selectedForeignerId} onClose={handleCloseDetailsModal} />
       )}
       {showEditModal && editingForeignerId && (
         <EditForeignerPage
@@ -585,8 +583,8 @@ const RegisteredArrivalsPage = () => {
       )}
       {showDeleteConfirmModal && foreignerToDelete && (
         <DeleteConfirmationModal
-          itemName={activeTab === 'Registered By Visitor' ? 'Visitor Registration' : 'Register Arrival'}
-          message={`Are you sure do you want to delete the user '${foreignerToDelete.name}'! Click on delete if you want to.`}
+          itemName="Register Arrival" // As per screenshot
+          message={`Are you sure do you want to delete the user '${foreignerToDelete.name}'! click on delete if you want to.`}
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
         />
@@ -594,5 +592,4 @@ const RegisteredArrivalsPage = () => {
     </>
   );
 };
-
 export default RegisteredArrivalsPage;
