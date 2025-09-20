@@ -255,7 +255,7 @@ const DashboardOverviewPage = () => {
                 valueColor="text-blue-400"
               />
               <StatCard
-                title="Total Organizations"
+                title="Total Police Stations"
                 value={dashboardMetrics.total_organizations}
                 icon={Building}
                 iconBgColor="bg-purple-900"
@@ -372,3 +372,4 @@ const DashboardOverviewPage = () => {
 };
 
 export default DashboardOverviewPage;
+
