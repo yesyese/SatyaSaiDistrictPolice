@@ -31,7 +31,7 @@ function EditUserDetailsModal({ userId, onClose, onSaveSuccess, currentUser }) {
                 setFormData({
                     username: data.username || '',
                     email: data.email || '',
-                    contact: data.contact || '', // Assuming contact_number is part of User model
+                    contact: data.contact || '', // Assuming contact is part of User model
                     role: data.role || 'Admin',
                     station_id: data.station_id || '',
                     mandal: data.mandal || ''
@@ -246,4 +246,3 @@ function EditUserDetailsModal({ userId, onClose, onSaveSuccess, currentUser }) {
 }
 
 export default EditUserDetailsModal;
-
