@@ -8,7 +8,7 @@ function EditUserDetailsModal({ userId, onClose, onSaveSuccess, currentUser }) {
     const [formData, setFormData] = useState({
         username: '',
         email: '',
-        contact_number: '', // Assuming this field exists in your User model and is editable
+        contact: '', // Assuming this field exists in your User model and is editable
         role: '', // Role is displayed but might not be directly editable by user themselves
         station_id: '',
         // Police Station is displayed but might not be directly editable by user themselves
@@ -31,7 +31,7 @@ function EditUserDetailsModal({ userId, onClose, onSaveSuccess, currentUser }) {
                 setFormData({
                     username: data.username || '',
                     email: data.email || '',
-                    contact_number: data.contact_number || '', // Assuming contact_number is part of User model
+                    contact: data.contact || '', // Assuming contact_number is part of User model
                     role: data.role || 'Admin',
                     station_id: data.station_id || '',
                     mandal: data.mandal || ''
@@ -66,7 +66,7 @@ function EditUserDetailsModal({ userId, onClose, onSaveSuccess, currentUser }) {
                 ...originalUserData, // Start with the full original object
                 username: formData.username,
                 email: formData.email,
-                contact_number: formData.contact_number,
+                contact: formData.contact,
                 // Role and station_id are typically not editable by user themselves,
                 // but if your backend's UserUpdate model accepts them, they would be here.
                 // For now, we are sending the values from formData, assuming backend handles immutability.
@@ -189,7 +189,7 @@ function EditUserDetailsModal({ userId, onClose, onSaveSuccess, currentUser }) {
                     {/* Contact Number (Added as per screenshot) */}
                     <div>
                         <label className="input-label">Contact Number</label>
-                        <input type="text" name="contact_number" value={formData.contact_number} onChange={handleChange} className="input-field" />
+                        <input type="text" name="contact" value={formData.contact} onChange={handleChange} className="input-field" />
                     </div>
 
                     <div className="col-span-full flex justify-end space-x-4 mt-6">
@@ -246,3 +246,4 @@ function EditUserDetailsModal({ userId, onClose, onSaveSuccess, currentUser }) {
 }
 
 export default EditUserDetailsModal;
+
