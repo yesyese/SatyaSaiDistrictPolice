@@ -45,6 +45,10 @@ function ForgotPasswordModal({ isOpen, onClose }) {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
+    // API response data
+    const [emailHint, setEmailHint] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+
     const resetForm = () => {
         setCurrentStep(STEPS.USERNAME);
         setUsername('');
@@ -54,6 +58,8 @@ function ForgotPasswordModal({ isOpen, onClose }) {
         setConfirmPassword('');
         setError('');
         setLoading(false);
+        setEmailHint('');
+        setSuccessMessage('');
     };
 
     const handleClose = () => {
@@ -72,7 +78,15 @@ function ForgotPasswordModal({ isOpen, onClose }) {
         try {
             const response = await requestPasswordResetApi(username.trim());
             console.log('Password reset requested:', response);
-            // You might want to extract email from response if provided by API
+
+            // Handle the new API response structure
+            if (response.email_hint) {
+                setEmailHint(response.email_hint);
+            }
+            if (response.message) {
+                setSuccessMessage(response.message);
+            }
+
             setCurrentStep(STEPS.OTP);
         } catch (err) {
             setError(err.message || 'Failed to send reset request. Please check your username.');
@@ -125,6 +139,14 @@ function ForgotPasswordModal({ isOpen, onClose }) {
         try {
             const response = await setNewPasswordApi(email.trim(), newPassword);
             console.log('Password set:', response);
+
+            // Store any success message from the API
+            if (typeof response === 'string') {
+                setSuccessMessage(response);
+            } else if (response.message) {
+                setSuccessMessage(response.message);
+            }
+
             setCurrentStep(STEPS.SUCCESS);
         } catch (err) {
             setError(err.message || 'Failed to set new password. Please try again.');
@@ -221,9 +243,14 @@ function ForgotPasswordModal({ isOpen, onClose }) {
                     {/* Step 2: OTP Verification */}
                     {currentStep === STEPS.OTP && (
                         <form onSubmit={handleOtpSubmit} className="space-y-6">
-                            <p className="text-[#9ca3af] text-sm mb-6">
-                                An OTP has been sent to your registered email address. Please enter it below.
-                            </p>
+                            {/* Success message from API - contains all the info */}
+                            {successMessage && (
+                                <div className="mb-6 p-3 bg-green-900/50 border border-green-700 rounded-md">
+                                    <p className="text-green-200 text-sm">{successMessage}</p>
+                                </div>
+                            )}
+
+                           
 
                             <div>
                                 <label htmlFor="email" className="text-sm font-medium text-[#9ca3af]">
@@ -237,13 +264,14 @@ function ForgotPasswordModal({ isOpen, onClose }) {
                                         id="email"
                                         type="email"
                                         required
-                                        placeholder="Enter your email address"
+                                        placeholder={emailHint ? `e.g., ${emailHint}` : "Enter your email address"}
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="block w-full rounded-md border-0 py-2.5 pl-10 bg-[#374151] text-[#f9fafb] placeholder:text-[#9ca3af] 
                              focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1e40af] sm:text-sm"
                                     />
                                 </div>
+                                
                             </div>
 
                             <div>
@@ -364,9 +392,13 @@ function ForgotPasswordModal({ isOpen, onClose }) {
                                 </svg>
                             </div>
                             <p className="text-[#f9fafb] mb-2 font-semibold">Password Reset Complete!</p>
-                            <p className="text-[#9ca3af] text-sm mb-6">
-                                Your password has been successfully updated. You can now log in with your new password.
-                            </p>
+                            {successMessage ? (
+                                <p className="text-[#9ca3af] text-sm mb-6">{successMessage}</p>
+                            ) : (
+                                <p className="text-[#9ca3af] text-sm mb-6">
+                                    Your password has been successfully updated. You can now log in with your new password.
+                                </p>
+                            )}
                             <button
                                 onClick={handleClose}
                                 className="w-full justify-center rounded-md bg-[#1e40af] px-3 py-2.5 text-sm font-semibold text-white 
