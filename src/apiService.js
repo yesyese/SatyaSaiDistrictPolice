@@ -908,3 +908,54 @@ export const deleteVisitorRegistrationApi = async (submissionId) => {
     }
     return;
 };
+
+// --- FORGOT PASSWORD MANAGEMENT ---
+/**
+ * Step 1: Request a password reset OTP for an admin/super admin
+ * @param {string} username - The username to reset password for
+ * @returns {Promise<string>} Success message
+ */
+export const requestPasswordResetApi = async (username) => {
+    const response = await fetch(`${API_BASE_URL}/users/forgot-password`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username })
+    });
+    return handleResponse(response);
+};
+
+/**
+ * Step 2: Verify the OTP sent to the admin's email
+ * @param {string} email - The email address
+ * @param {string} otp - The OTP code
+ * @returns {Promise<string>} Success message
+ */
+export const verifyOtpApi = async (email, otp) => {
+    const response = await fetch(`${API_BASE_URL}/users/verify-otp`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, otp })
+    });
+    return handleResponse(response);
+};
+
+/**
+ * Step 3: Set a new password after successful OTP verification
+ * @param {string} email - The email address
+ * @param {string} new_password - The new password
+ * @returns {Promise<string>} Success message
+ */
+export const setNewPasswordApi = async (email, new_password) => {
+    const response = await fetch(`${API_BASE_URL}/users/set-password`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, new_password })
+    });
+    return handleResponse(response);
+};
