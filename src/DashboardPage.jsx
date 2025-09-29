@@ -31,6 +31,8 @@ import {
   Layers,
   MessageSquareText,
   EyeOff,        // WHAT CHANGED: Keep EyeOff here as it's used in Sidebar, and it comes from lucide-react.
+  X,             // Added X icon for close button
+  Menu,          // Added Menu icon for hamburger menu
 } from 'lucide-react';
 
 import { LogOut } from 'lucide-react';
@@ -40,6 +42,10 @@ function DashboardPage({ user, onLogout }) {
   const defaultUser = { username: 'Guest', role: 'Viewer' };
   const currentUser = user || defaultUser;
   const handleLogout = onLogout || (() => console.log("Logout function not provided"));
+
+  // Mobile sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   useEffect(() => {
     const shouldWelcome = sessionStorage.getItem('showWelcomeToast');
     if (shouldWelcome && user?.username) {
@@ -47,14 +53,53 @@ function DashboardPage({ user, onLogout }) {
       sessionStorage.removeItem('showWelcomeToast');
     }
   }, [user?.username]);
+
+  // Handle sidebar auto-close on screen resize
+  useEffect(() => {
+    const handleResize = () => {
+      // Close sidebar when screen becomes large (lg and above)
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
+
   return (
     <div className="flex h-screen bg-gray-950 text-gray-100 font-inter">
-      <Sidebar user={currentUser} onLogout={handleLogout} />
+      <Sidebar
+        user={currentUser}
+        onLogout={handleLogout}
+        isOpen={isSidebarOpen}
+        onClose={closeSidebar}
+      />
 
       <div className="flex flex-col flex-1 overflow-hidden min-h-0"> {/* WHAT CHANGED: Changed overflow-hidden to overflow-y-auto to allow vertical scrolling */}
-        <Header user={currentUser} onLogout={handleLogout} />
+        <Header
+          user={currentUser}
+          onLogout={handleLogout}
+          onToggleSidebar={toggleSidebar}
+        />
         <Outlet /> {/* This is where nested routes like DashboardOverviewPage will render */}
       </div>
+
+      {/* Mobile overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={closeSidebar}
+        ></div>
+      )}
     </div>
   );
 }
@@ -85,7 +130,7 @@ const usePageName = () => {
 };
 
 // Sidebar Component
-const Sidebar = ({ user, onLogout }) => {
+const Sidebar = ({ user, onLogout, isOpen, onClose }) => {
   const location = useLocation(); // WHAT CHANGED: useLocation is correctly called here
 
   const navItems = [
@@ -118,7 +163,7 @@ const Sidebar = ({ user, onLogout }) => {
     { label: 'Security', icon: Shield, path: '/security' },
   ];
 
-  const NavSection = ({ title, items, location }) => ( // WHAT CHANGED: location prop is received
+  const NavSection = ({ title, items, location, onClose }) => ( // WHAT CHANGED: location prop is received
     <div className="mb-6">
       <h3 className="text-xs font-semibold uppercase text-gray-500 mb-3 ml-4">{title}</h3>
       <nav>
@@ -126,6 +171,12 @@ const Sidebar = ({ user, onLogout }) => {
           <Link
             key={index}
             to={item.path}
+            onClick={() => {
+              // Close sidebar on mobile when navigation occurs
+              if (window.innerWidth < 1024) {
+                onClose();
+              }
+            }}
             className={`flex items-center py-2 px-4 rounded-lg mx-2 transition-colors duration-200
               ${location.pathname === item.path ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-gray-800 text-gray-300'}
             `}
@@ -141,22 +192,38 @@ const Sidebar = ({ user, onLogout }) => {
   return (
     <>
       <CustomScrollbarStyles />
-      <div className="w-64 bg-gray-900 shadow-xl flex flex-col p-4 overflow-y-auto custom-scrollbar">
-        <div className="flex items-center mb-8 px-2">
-          <div className="w-8 h-8 rounded-md flex items-center justify-center text-white font-bold text-lg mr-2">
-            <img src="./police.png" alt="police logo" className="w-full h-full object-contain" />
+      <div className={`
+        fixed lg:relative lg:translate-x-0 z-50 lg:z-auto
+        w-64 bg-gray-900 shadow-xl flex flex-col p-4 overflow-y-auto custom-scrollbar
+        transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:block h-full
+      `}>
+        <div className="flex items-center justify-between mb-8 px-2">
+          <div className="flex items-center">
+            <div className="w-8 h-8 rounded-md flex items-center justify-center text-white font-bold text-lg mr-2">
+              <img src="./police.png" alt="police logo" className="w-full h-full object-contain" />
+            </div>
+            <span className="text-lg font-bold">SP Admin</span>
           </div>
-          <span className="text-lg font-bold">SP Admin</span>
+
+          {/* Close button - only visible on mobile */}
+          <button
+            onClick={onClose}
+            className="lg:hidden p-2 rounded-md hover:bg-gray-800 transition-colors duration-200"
+          >
+            <X className="w-5 h-5 text-gray-400 hover:text-white" />
+          </button>
         </div>
 
-        <NavSection title="OVERVIEW" items={navItems} location={location} />
-        <NavSection title="CORE MODULES" items={coreModules} location={location} />
+        <NavSection title="OVERVIEW" items={navItems} location={location} onClose={onClose} />
+        <NavSection title="CORE MODULES" items={coreModules} location={location} onClose={onClose} />
         {user && user.role === 'SuperAdmin' && (
-          <NavSection title="ADMINISTRATION" items={administration} location={location} />
+          <NavSection title="ADMINISTRATION" items={administration} location={location} onClose={onClose} />
         )}
-        <NavSection title="SYSTEM" items={system} location={location} />
+        <NavSection title="SYSTEM" items={system} location={location} onClose={onClose} />
         {user && user.role === 'SuperAdmin' && (
-          <NavSection title="" items={systemSuperAdmin} location={location} />
+          <NavSection title="" items={systemSuperAdmin} location={location} onClose={onClose} />
         )}
 
         <div className="mt-auto px-4 py-4 border-t border-gray-800">
@@ -180,7 +247,7 @@ const Sidebar = ({ user, onLogout }) => {
 
 // Header Component
 // Header Component
-const Header = ({ user, onLogout }) => {
+const Header = ({ user, onLogout, onToggleSidebar }) => {
   const currentPageName = usePageName();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -217,7 +284,16 @@ const Header = ({ user, onLogout }) => {
 
   return (
     <header className="flex items-center justify-between p-4 bg-gray-900 shadow-md border-b border-gray-800">
-      <h1 className="text-xl font-semibold text-gray-50">{currentPageName}</h1>
+      <div className="flex items-center space-x-4">
+        {/* Hamburger menu for mobile */}
+        <button
+          onClick={onToggleSidebar}
+          className="lg:hidden p-2 rounded-md hover:bg-gray-800 transition-colors duration-200"
+        >
+          <Menu className="w-5 h-5 text-gray-400 hover:text-white" />
+        </button>
+        <h1 className="text-xl font-semibold text-gray-50">{currentPageName}</h1>
+      </div>
 
       <div className="flex items-center space-x-4">
         {/* Notification Bell with Red Dot */}
