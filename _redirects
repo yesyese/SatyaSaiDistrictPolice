@@ -1,1 +1,5 @@
-/* /index.html 200
+# Redirects all routes to index.html for client-side routing
+/                /index.html     200
+/login           /index.html     200
+/dashboard/*     /index.html     200
+/*              /index.html     200
