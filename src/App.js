@@ -89,9 +89,7 @@ function App() {
         setUser(currentUser);
         setIsAuthenticated(true);
         sessionStorage.setItem('showWelcomeToast', 'true');
-        toast.success(` Login successful! Redirecting...`);
       } else {
-        toast.error(' Login succeeded, but user data failed to load.');
         await logoutUser(); // Ensure backend logout happens
         setIsAuthenticated(false);
       }
@@ -124,6 +122,13 @@ function App() {
       <ToastContainer position="top-right" autoClose={3000} theme="dark" />
 
       <Routes>
+        {/* Redirect root to login */}
+        <Route path="/" element={
+          isAuthenticated
+            ? <Navigate to="/dashboard" replace />
+            : <Navigate to="/login" replace />
+        } />
+
         {/* Public Login Route */}
         <Route path="/login" element={
           isAuthenticated
