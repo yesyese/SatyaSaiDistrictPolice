@@ -29,11 +29,27 @@ function LoginPage({ onLogin, loading }) {
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [isBackgroundLoaded, setIsBackgroundLoaded] = useState(false);
 
+  // Optimize input handling with debounce
+  const handleInputChange = React.useCallback((e) => {
+    const { name, value } = e.target;
+    if (name === 'username') {
+      setUsername(value);
+    } else if (name === 'password') {
+      setPassword(value);
+    }
+  }, []);
+
   useEffect(() => {
     // Preload the background image
     preloadImage('/background.png')
       .then(() => setIsBackgroundLoaded(true))
       .catch(console.error);
+    
+    // Prefetch API endpoint
+    const link = document.createElement('link');
+    link.rel = 'preconnect';
+    link.href = process.env.REACT_APP_API_URL || window.location.origin;
+    document.head.appendChild(link);
   }, []);
 
   const handleSubmit = (e) => {
@@ -48,9 +64,8 @@ function LoginPage({ onLogin, loading }) {
 
   return (
     <div
-      className={`min-h-screen flex items-center justify-center px-4 font-['Inter'] text-[#f9fafb] transition-opacity duration-500 ${
-        isBackgroundLoaded ? 'opacity-100' : 'opacity-0'
-      }`}
+      className={`min-h-screen flex items-center justify-center px-4 font-['Inter'] text-[#f9fafb] transition-opacity duration-500 ${isBackgroundLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
       style={{
         backgroundImage: 'url(/background.png)',
         backgroundSize: 'cover',
@@ -62,10 +77,10 @@ function LoginPage({ onLogin, loading }) {
       <div className="relative z-10 w-full max-w-md mx-auto">
         <div className="w-full max-w-md mx-auto">
           <div className="text-center mb-8">
-            <img 
-              src="/police.png" 
-              alt="SP Office Admin Portal Logo" 
-              className="mx-auto h-20 w-auto" 
+            <img
+              src="/police.png"
+              alt="SP Office Admin Portal Logo"
+              className="mx-auto h-20 w-auto"
               loading="eager"
               fetchpriority="high" />
             <h1 className="text-2xl font-bold mt-4">SP Office Admin Portal</h1>
@@ -89,7 +104,9 @@ function LoginPage({ onLogin, loading }) {
                     required
                     placeholder="Enter your username"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={handleInputChange}
+                    autoFocus
+                    spellCheck="false"
                     className="block w-full rounded-md border-0 py-2.5 pl-10 bg-[#374151] text-[#f9fafb] placeholder:text-[#9ca3af] 
              focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1e40af] sm:text-sm"                />
                 </div>
