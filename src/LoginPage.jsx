@@ -1,5 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ForgotPasswordModal from './components/ForgotPasswordModal';
+
+// Preload background image
+const preloadImage = (src) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = src;
+    img.onload = resolve;
+    img.onerror = reject;
+  });
+};
 
 const UserIcon = () => (
   <svg className="h-5 w-5 text-[#9ca3af]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -17,6 +27,14 @@ function LoginPage({ onLogin, loading }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [isBackgroundLoaded, setIsBackgroundLoaded] = useState(false);
+
+  useEffect(() => {
+    // Preload the background image
+    preloadImage('/background.png')
+      .then(() => setIsBackgroundLoaded(true))
+      .catch(console.error);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -30,7 +48,9 @@ function LoginPage({ onLogin, loading }) {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4 font-['Inter'] text-[#f9fafb]"
+      className={`min-h-screen flex items-center justify-center px-4 font-['Inter'] text-[#f9fafb] transition-opacity duration-500 ${
+        isBackgroundLoaded ? 'opacity-100' : 'opacity-0'
+      }`}
       style={{
         backgroundImage: 'url(/background.png)',
         backgroundSize: 'cover',
@@ -42,7 +62,12 @@ function LoginPage({ onLogin, loading }) {
       <div className="relative z-10 w-full max-w-md mx-auto">
         <div className="w-full max-w-md mx-auto">
           <div className="text-center mb-8">
-            <img src="/police.png" alt="SP Office Admin Portal Logo" className="mx-auto h-20 w-auto" />
+            <img 
+              src="/police.png" 
+              alt="SP Office Admin Portal Logo" 
+              className="mx-auto h-20 w-auto" 
+              loading="eager"
+              fetchpriority="high" />
             <h1 className="text-2xl font-bold mt-4">SP Office Admin Portal</h1>
             <p className="text-[#9ca3af] text-sm mt-1">Please sign in to continue</p>
           </div>
