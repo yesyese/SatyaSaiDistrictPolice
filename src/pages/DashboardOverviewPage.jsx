@@ -165,7 +165,6 @@ const DashboardOverviewPage = () => {
 
         // console.log('✅ All dashboard data loaded successfully in single batch');
         if (!hasShownToast.current) {
-          toast.success('Dashboard data loaded successfully!');
           hasShownToast.current = true;
         }
       } catch (error) {
