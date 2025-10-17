@@ -1,7 +1,5 @@
 // src/authService.js
-
-//const API_BASE_URL = 'http://10.111.4.221:8000'; // Your FastAPI backend URL - confirm this is correct!
-const API_BASE_URL = 'https://sspbackend-production.up.railway.app'; // Uncomment this if you want to use localhost for development
+import { api, API_BASE_URL } from './apiConfig';
 // WHAT CHANGED: Global variable to store the logout timer ID
 let logoutTimerId = null;
 
